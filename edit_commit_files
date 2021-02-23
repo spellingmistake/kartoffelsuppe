@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# add this to bashrc or otherwise to get tab completion for edit_commit_files:
+#function fx() {
+#	h=$(git log --pretty=%h -${EDF_FX_CNT:-97} 2>/dev/null)
+#	if [ -n "${h}" ]; then
+#		COMPREPLY=( $(compgen -o noquote -W "${h}" -- "${COMP_WORDS[COMP_CWORD]}") )
+#	fi
+#}
+#complete -W "HEAD modified" -F fx edit_commit_files
+
+tmp=$(mktemp /tmp/$(basename ${0}).XXXXXXXXX)
+chg="modified"
+editor=${EDITOR:-vim}
+
+if [ $# -eq 0 ]; then
+	git diff --no-ext-diff --quiet >/dev/null 2>&1
+
+	if [ $? -eq 1 ]; then
+		commit="${chg}"
+	fi
+else
+	args=("$@")
+	commit=${args[${#args[@]} - 1]}
+	unset "args[${#args[@]} - 1]"
+fi
+
+if [ "${chg}" = ${commit} ]; then
+	git diff ${args[*]} >${tmp}
+	cmd="git diff --name-only"
+else
+	git show ${args[*]} ${commit} >${tmp}
+	cmd="git show --pretty=format: --name-only  ${commit}"
+fi
+
+${editor} $(${cmd}) ${tmp}
+rm ${tmp}
