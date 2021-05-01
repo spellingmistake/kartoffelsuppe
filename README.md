@@ -7,3 +7,5 @@
   no commit was given and files have modified (yet not staged), those files
   will be loaded, without local changes HEAD will be used; the temporary diff
   file will be deleted after the editor is closed;
+* scan all vaccination venues in SN and send a telegram message if a certain
+  limit is exceeded (1st python attempt)
