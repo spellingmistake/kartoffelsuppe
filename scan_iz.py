@@ -28,7 +28,7 @@ def send_telegram_message(auth, id, msg):
 def p_or_ps(count):
     return ' freier Platz' if (1 == count) else ' freie Plätze'
 
-def in_limits(name, count):
+def in_limits(limits, name, count):
     ret = ''
     for key in limits.keys():
         limit = limits[key]['limit']
@@ -80,7 +80,7 @@ def scan_iz(auth, id, l = None):
         items = dict[key]['counteritems'][0]
 
         if l:
-            msg = in_limits(name, items['val'])
+            msg = in_limits(l, name, items['val'])
             if (msg):
                 print_iz(name, items)
                 tele_msg += msg
@@ -91,43 +91,46 @@ def scan_iz(auth, id, l = None):
         print(time.asctime((time.gmtime(int(time.strftime("%s", time.gmtime()))+3*3600))), end = ": \n")
         send_telegram_message(auth, id, tele_msg)
 
-limits = {
-    #'Annaberg' :  { 'limit' :  0, },
-    #'Belgern' :   { 'limit' :  0, },
-    #'Borna' :     { 'limit' :  0, },
-    #'Eich' :      { 'limit' :  0, },
-    #'Plauen' :    { 'limit' :  0, },
-    'Chemnitz' :  { 'limit' : 10, },
-    'Dresden' :   { 'limit' : 10, },
-    'Grimma' :    { 'limit' : 20, },
-    'Kamenz' :    { 'limit' : 10, },
-    'Leipzig' :   { 'limit' : 10, },
-    'Löbau' :     { 'limit' : 30, },
-    'Mittweida' : { 'limit' : 10, },
-    'Pirna' :     { 'limit' : 10, },
-    'Riesa' :     { 'limit' : 10, },
-    'Zwickau' :   { 'limit' : 20, },
-}
+def main():
+    limits = {
+        #'Annaberg' :  { 'limit' :  0, },
+        #'Belgern' :   { 'limit' :  0, },
+        #'Borna' :     { 'limit' :  0, },
+        #'Eich' :      { 'limit' :  0, },
+        #'Plauen' :    { 'limit' :  0, },
+        'Chemnitz' :  { 'limit' : 10, },
+        'Dresden' :   { 'limit' : 10, },
+        'Grimma' :    { 'limit' : 10, },
+        'Kamenz' :    { 'limit' : 10, },
+        'Leipzig' :   { 'limit' : 10, },
+        'Löbau' :     { 'limit' : 10, },
+        'Mittweida' : { 'limit' : 10, },
+        'Pirna' :     { 'limit' : 10, },
+        'Riesa' :     { 'limit' : 10, },
+        'Zwickau' :   { 'limit' : 10, },
+    }
 
-parser = argparse.ArgumentParser()
-parser.add_argument('--oneshot', '-1', action='store_true', help='print *all* vacant spots and exit, no telegram message')
-parser.add_argument('--recipient', '-r', action='store', help='telegram id of the recipient')
-parser.add_argument('--bot-auth', '-a', action='store', help='auth string of telegram bot')
-args = parser.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--oneshot', '-1', action='store_true', help='print *all* vacant spots and exit, no telegram message')
+    parser.add_argument('--recipient', '-r', action='store', help='telegram id of the recipient')
+    parser.add_argument('--bot-auth', '-a', action='store', help='auth string of telegram bot')
+    args = parser.parse_args()
 
-if False == args.oneshot and (not args.recipient or not args.bot_auth):
-    print('non-oneshot mode requires telegram recipient and bot auth\n', file = sys.stderr)
-    parser.print_help()
-    exit(-1);
-elif True == args.oneshot:
-    scan_iz(None, None)
-    exit(0)
+    if False == args.oneshot and (not args.recipient or not args.bot_auth):
+        print('non-oneshot mode requires telegram recipient and bot auth\n', file = sys.stderr)
+        parser.print_help()
+        exit(-1);
+    elif True == args.oneshot:
+        scan_iz(None, None)
+        exit(0)
 
-i = 0
-while True:
-    i = i + 1
-    print('executing run #' + str(i), end = '\r')
-    # if run without argument, the script prints all venues with vacant
-    # vaccination spots and does not generate a telegram message
-    scan_iz(args.bot_auth, args.recipient, limits)
-    time.sleep(sleep_interval)
+    i = 0
+    while True:
+        i = i + 1
+        print('executing run #' + str(i), end = '\r')
+        # if run without argument, the script prints all venues with vacant
+        # vaccination spots and does not generate a telegram message
+        scan_iz(args.bot_auth, args.recipient, limits)
+        time.sleep(sleep_interval)
+
+if __name__ == '__main__': main()
