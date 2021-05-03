@@ -22,6 +22,7 @@ else:
 
 def send_telegram_message(auth, id, msg):
     uri = bot_url.format(auth = auth, id = id, msg = urlencode({'text' : msg}))
+    print(f'sending reuquest "{uri}"')
     request = http.request('GET', uri)
 
 def p_or_ps(count):
@@ -87,6 +88,7 @@ def scan_iz(auth, id, l = None):
             print_iz(name, items)
 
     if tele_msg:
+        print(time.asctime((time.gmtime(int(time.strftime("%s", time.gmtime()))+3*3600))), end = ": \n")
         send_telegram_message(auth, id, tele_msg)
 
 limits = {
