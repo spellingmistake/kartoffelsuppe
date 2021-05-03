@@ -30,7 +30,8 @@ def p_or_ps(count):
 def in_limits(name, count):
     ret = ''
     for key in limits.keys():
-        if key in name and count >= limits[key]['limit']:
+        limit = limits[key]['limit']
+        if key in name and ((limit > 0 and count >= limit) or (limit == 0 and count > 0)):
             t = time.time()
             elem = limits[key]
             if not 'timestamp' in elem or t > elem['timestamp']:
@@ -48,12 +49,32 @@ def print_iz(name, items):
                 print('	' + time.strftime('%d.%m.%Y', time.localtime(item['d'])) + ': ' + str(c))
         print()
 
+def check_json(js, key, dict):
+    for elem in dict:
+        if not elem in js:
+            print('{0} not in dict for key {1}: {2}'.format(elem, key, js))
+            return False
+    return True
+
 def scan_iz(auth, id, l = None):
     request = http.request('GET', iz_url)
-    dict = json.loads(request.data.decode('utf-8'))['response']['data']
-    tele_msg = ''
+    try:
+        js = json.loads(request.data.decode('utf-8'))
+        dict = js['response']['data']
+    except JSONDecodeError as err:
+        print('caught JSONDecodeError: {0}'.format(err))
+        return
+    except:
+        print('caught unspecific error:')
+        print(js)
+        return
 
+    tele_msg = ''
     for key in dict.keys():
+        if not check_json(dict[key], key, ['name', 'counteritems']) or not \
+                check_json(dict[key]['counteritems'][0], key, ['val', 'val_s']):
+            continue
+
         name = dict[key]['name']
         items = dict[key]['counteritems'][0]
 
@@ -75,7 +96,7 @@ limits = {
     #'Eich' :      { 'limit' :  0, },
     #'Plauen' :    { 'limit' :  0, },
     'Chemnitz' :  { 'limit' : 10, },
-    'Dresden' :   { 'limit' :  0, 'cooldown' : 60 * 2, },
+    'Dresden' :   { 'limit' : 10, },
     'Grimma' :    { 'limit' : 20, },
     'Kamenz' :    { 'limit' : 10, },
     'Leipzig' :   { 'limit' : 10, },
